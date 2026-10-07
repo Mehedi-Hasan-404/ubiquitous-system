@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Nafia and Naisha</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--sky1:#9fdcff;--sky2:#e9f8ff;--ink:#3b2a63;--card:#fff;--grass:#7ddc6b;--stars:0;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--sky1:#12154a;--sky2:#2b2f7a;--ink:#fff3c4;--card:#3a3f95;--grass:#2f8f5b;--stars:1}}
+:root[data-theme="dark"]{--sky1:#12154a;--sky2:#2b2f7a;--ink:#fff3c4;--card:#3a3f95;--grass:#2f8f5b;--stars:1}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:linear-gradient(var(--sky1),var(--sky2));color:var(--ink);font-family:"Fredoka","Comic Sans MS","Chalkboard SE",sans-serif;text-align:center;overflow-x:hidden;transition:background .6s}
+
+/* .page: centered content column */
+.page{max-width:520px;margin:0 auto;padding:12px 16px 120px;position:relative;z-index:2}
+/* .rainbow: SVG arch behind the title */
+.rainbow{width:100%;height:auto;display:block;margin-bottom:-70px;opacity:.9}
+/* .sky-btn: sun/moon button that switches day and night */
+.sky-btn{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));right:12px;z-index:5;font-size:40px;background:none;border:0;cursor:pointer;animation:spin 16s linear infinite}
+/* .heading: title */
+.heading{font-size:1.5rem;margin:0 0 14px;position:relative}
+/* .kid: name card */
+.kid{background:var(--card);border-radius:30px;padding:16px 12px 18px;margin-bottom:18px;border:5px dashed;box-shadow:0 8px 0 rgba(0,0,0,.12)}
+.kid.nafia{border-color:#4cb3ff}
+.kid.naisha{border-color:#ff6fa8}
+/* .name: row of tappable letters */
+.name{font-size:3.3rem;font-weight:700;line-height:1.1;margin:4px 0}
+/* .l: one letter; tap it to play a note */
+.l{display:inline-block;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;animation:bounce 1.8s ease-in-out infinite;padding:0 1px}
+.l.jump{animation:jump .5s}
+/* .hint: small helper text */
+.hint{font-size:.85rem;opacity:.8;margin:0 0 6px}
+/* .toys: emoji row */
+.toys{font-size:2rem;letter-spacing:6px}
+/* .btn: round sticker button */
+.btn{font:inherit;font-weight:700;border:0;border-radius:999px;padding:10px 20px;background:#ffd23f;color:#4a3200;box-shadow:0 5px 0 #c99a00;cursor:pointer;font-size:1.05rem}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 #c99a00}
+.btn:focus-visible,.sky-btn:focus-visible{outline:3px solid #fff;outline-offset:3px}
+/* .layer: full-screen area for balloons and stars (clicks pass through except balloons) */
+.layer{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:1}
+/* .balloon: floats up; tap to pop */
+.balloon{position:absolute;bottom:-90px;font-size:56px;pointer-events:auto;cursor:pointer;animation:float linear forwards}
+/* .star: twinkles, only shows at night */
+.star{position:absolute;font-size:16px;opacity:calc(var(--stars)*.9);animation:twinkle 2.4s ease-in-out infinite}
+/* .grass: ground strip, animals walk on it */
+.grass{position:fixed;left:0;right:0;bottom:0;height:calc(70px + env(safe-area-inset-bottom,0px));background:var(--grass);border-radius:50% 50% 0 0/26px 26px 0 0;z-index:3;pointer-events:none;overflow:hidden;transition:background .6s}
+.flowers{display:flex;justify-content:space-around;font-size:24px}
+/* .walker: an animal that walks across the grass */
+.walker{position:absolute;bottom:8px;font-size:34px;left:-50px;animation:walk 9s linear forwards}
+/* .pop: little emoji burst */
+.pop{position:fixed;font-size:26px;pointer-events:none;z-index:6;animation:rise 1s ease-out forwards}
+
+/* .pad: rainbow drawing board */
+.pad{background:var(--card);border-radius:30px;border:5px dashed #a77bff;padding:12px;margin-bottom:18px;box-shadow:0 8px 0 rgba(0,0,0,.12)}
+.pad canvas{width:100%;height:200px;display:block;border-radius:18px;background:repeating-linear-gradient(45deg,#fffdf4,#fffdf4 12px,#fff6d8 12px,#fff6d8 24px);touch-action:none;cursor:crosshair}
+.row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:18px}
+.btn.pink{background:#ff8fc0;box-shadow:0 5px 0 #c4568a;color:#4a0030}
+.btn.green{background:#6be6a8;box-shadow:0 5px 0 #2d9c68;color:#053a22}
+/* .maker: mix-and-match creature builder */
+.maker,.garden{background:var(--card);border-radius:30px;padding:12px;margin-bottom:18px;box-shadow:0 8px 0 rgba(0,0,0,.12)}
+.maker{border:5px dashed #ff9a3c}
+.garden{border:5px dashed #7ddc6b}
+.creature{display:flex;flex-direction:column;align-items:center;margin:4px 0 10px;animation:dance 1.2s ease-in-out infinite}
+.slot{font-size:54px;line-height:1.05;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;background:none;border:0;padding:0;font-family:inherit}
+.slot.jump{animation:jump .5s}
+.owner{font-weight:700;font-size:1.2rem;margin:0 0 4px}
+/* .stickers: build-a-scene sticker book */
+.stickers{background:var(--card);border-radius:30px;border:5px dashed #4cb3ff;padding:12px;margin-bottom:18px;box-shadow:0 8px 0 rgba(0,0,0,.12)}
+.scene{position:relative;height:250px;border-radius:18px;overflow:hidden;margin:8px 0;transition:background .4s}
+.scene.meadow{background:linear-gradient(#bfe9ff 0 62%,#7ddc6b 62%)}
+.scene.space{background:radial-gradient(circle at 20% 30%,#fff 0 1px,transparent 2px),radial-gradient(circle at 70% 20%,#fff 0 1px,transparent 2px),radial-gradient(circle at 85% 70%,#fff 0 1px,transparent 2px),radial-gradient(circle at 35% 80%,#fff 0 1px,transparent 2px),linear-gradient(#1a1050,#4b2a8f)}
+.scene.sea{background:linear-gradient(#7fdcff,#1a7fd0 70%,#e8d49a 70%)}
+.stk{position:absolute;font-size:46px;line-height:1;cursor:grab;touch-action:none;user-select:none;will-change:transform;animation:pop-in .4s cubic-bezier(.3,1.8,.5,1)}
+.stk.drag{cursor:grabbing;filter:drop-shadow(0 6px 4px rgba(0,0,0,.35));z-index:9}
+.tray{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-bottom:8px}
+.tray button{font-size:30px;background:none;border:2px solid transparent;border-radius:14px;cursor:pointer;padding:2px 6px;line-height:1.1}
+.tray button:active{border-color:#4cb3ff}
+.tabs{display:flex;gap:8px;justify-content:center}
+.tabs .btn{padding:6px 14px;font-size:.95rem;box-shadow:0 3px 0 #c99a00}
+.tabs .btn.on{background:#4cb3ff;color:#fff;box-shadow:0 3px 0 #1f78b8}
+@keyframes pop-in{from{scale:0}to{scale:1}}
+/* .band: animal sound pads with record and play back */
+.band{background:var(--card);border-radius:30px;border:5px dashed #ff6fa8;padding:12px;margin-bottom:18px;box-shadow:0 8px 0 rgba(0,0,0,.12)}
+.pads{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
+.pad-btn{font:inherit;font-size:46px;line-height:1;padding:14px 0;border:0;border-radius:22px;cursor:pointer;color:#fff;box-shadow:0 6px 0 rgba(0,0,0,.25);-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.pad-btn:active,.pad-btn.hit{transform:translateY(5px) scale(1.06);box-shadow:0 1px 0 rgba(0,0,0,.25)}
+.rec-on{background:#ff4f4f!important;box-shadow:0 5px 0 #a02020!important;color:#fff!important;animation:blink 1s infinite}
+@keyframes blink{50%{opacity:.6}}
+/* .plot: tap anywhere to plant a flower */
+.plot{position:relative;height:170px;border-radius:18px;overflow:hidden;cursor:pointer;background:linear-gradient(#c9f0ff 0 55%,#8a5a3c 55%);touch-action:manipulation}
+.plant{position:absolute;font-size:34px;line-height:1;transform-origin:50% 100%;animation:grow .7s cubic-bezier(.3,1.8,.5,1) forwards;pointer-events:none}
+.bee{position:absolute;font-size:24px;pointer-events:none;animation:bee 4s linear forwards}
+@keyframes dance{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg) translateY(-4px)}}
+@keyframes grow{from{transform:translate(-50%,0) scale(0)}to{transform:translate(-50%,0) scale(1)}}
+@keyframes bee{0%{left:-30px;top:20%}30%{top:45%}60%{top:15%}100%{left:105%;top:35%}}
+/* .game: catch-the-treats mini game */
+.game{background:var(--card);border-radius:30px;border:5px dashed #3ddc97;padding:12px;margin-bottom:18px;box-shadow:0 8px 0 rgba(0,0,0,.12)}
+.hud{display:flex;justify-content:space-around;font-weight:700;font-size:1.1rem;margin-bottom:8px}
+.arena{position:relative;height:260px;border-radius:18px;overflow:hidden;touch-action:none;background:linear-gradient(#c9f0ff,#fff6d8);user-select:none}
+.basket{position:absolute;bottom:4px;left:0;font-size:52px;line-height:1;will-change:transform}
+.item{position:absolute;top:0;left:0;font-size:34px;line-height:1;will-change:transform}
+.arena .msg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#3b2a63;font-weight:700;font-size:1.1rem;padding:16px;pointer-events:none}
+/* .banner: big surprise text */
+.banner{position:fixed;left:50%;top:38%;z-index:8;transform:translate(-50%,-50%) scale(0);font-size:2.6rem;font-weight:700;background:#fff;color:#ff4f93;padding:14px 26px;border-radius:30px;border:5px solid #ffd23f;pointer-events:none;white-space:nowrap}
+.banner.show{animation:bannerpop 2.2s ease-out forwards}
+/* .fall: confetti emoji raining down */
+.fall{position:fixed;top:-50px;z-index:7;font-size:30px;pointer-events:none;animation:fall linear forwards}
+@keyframes bannerpop{0%{transform:translate(-50%,-50%) scale(0) rotate(-8deg)}15%{transform:translate(-50%,-50%) scale(1.15) rotate(4deg)}25%{transform:translate(-50%,-50%) scale(1) rotate(0)}85%{opacity:1}100%{transform:translate(-50%,-50%) scale(1);opacity:0}}
+@keyframes fall{to{transform:translateY(110vh) rotate(360deg)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes jump{0%{transform:translateY(0) scale(1)}40%{transform:translateY(-30px) scale(1.4) rotate(-10deg)}100%{transform:translateY(0) scale(1)}}
+@keyframes float{to{transform:translateY(-120vh) translateX(var(--dx))}}
+@keyframes twinkle{50%{transform:scale(.4);opacity:.2}}
+@keyframes walk{to{left:calc(100% + 50px)}}
+@keyframes rise{to{opacity:0;transform:translate(var(--dx),-110px) scale(1.5)}}
+@media (prefers-reduced-motion:reduce){.sky-btn,.l,.balloon,.star{animation:none}.balloon{bottom:30%}}
+</style>
+</head>
+<body>
+<button class="sky-btn" id="sky" aria-label="Switch day and night">🌞</button>
+<div class="layer" id="stars"></div>
+<div class="layer" id="balloons"></div>
+
+<main class="page">
+  <svg class="rainbow" viewBox="0 0 300 150" aria-hidden="true">
+    <g fill="none" stroke-width="11" stroke-linecap="round">
+      <path d="M10 148A140 140 0 0 1 290 148" stroke="#ff5a5a"/>
+      <path d="M22 148A128 128 0 0 1 278 148" stroke="#ff9a3c"/>
+      <path d="M34 148A116 116 0 0 1 266 148" stroke="#ffd23f"/>
+      <path d="M46 148A104 104 0 0 1 254 148" stroke="#3ddc97"/>
+      <path d="M58 148A92 92 0 0 1 242 148" stroke="#4cb3ff"/>
+      <path d="M70 148A80 80 0 0 1 230 148" stroke="#a77bff"/>
+    </g>
+  </svg>
+  <h1 class="heading">Play the names! 🎵</h1>
+
+  <section class="kid nafia">
+    <p class="hint">Tap each letter 👇</p>
+    <div class="name" data-colors="#ff6fa8,#ff9a3c,#e8b800,#3ddc97,#4cb3ff"><span class="l">N</span><span class="l">a</span><span class="l">f</span><span class="l">i</span><span class="l">a</span></div>
+    <div class="toys">🧸🚗🎈</div>
+  </section>
+
+  <section class="kid naisha">
+    <p class="hint">Tap each letter 👇</p>
+    <div class="name" data-colors="#a77bff,#4cb3ff,#3ddc97,#e8b800,#ff9a3c,#ff6fa8"><span class="l">N</span><span class="l">a</span><span class="l">i</span><span class="l">s</span><span class="l">h</span><span class="l">a</span></div>
+    <div class="toys">🦄🎀🌈</div>
+  </section>
+
+  <section class="pad">
+    <p class="hint">Draw a rainbow with your finger 🌈</p>
+    <canvas id="pad" aria-label="Drawing board"></canvas>
+  </section>
+
+  <section class="stickers">
+    <p class="owner">Sticker world 🌍</p>
+    <div class="tabs" id="tabs">
+      <button class="btn on" data-s="meadow">🌳 Meadow</button>
+      <button class="btn" data-s="space">🚀 Space</button>
+      <button class="btn" data-s="sea">🐠 Sea</button>
+    </div>
+    <div class="scene meadow" id="scene"></div>
+    <p class="hint">Tap a sticker to add it, then drag it anywhere.</p>
+    <div class="tray" id="tray"></div>
+    <div class="row" style="margin:0">
+      <button class="btn pink" id="undo">Undo ↩️</button>
+      <button class="btn green" id="wipe">Clear 🧽</button>
+    </div>
+  </section>
+
+  <section class="band">
+    <p class="owner">Animal band 🎶</p>
+    <p class="hint">Tap the animals! Press Record, play a song, then Play it back.</p>
+    <div class="pads">
+      <button class="pad-btn" data-i="0" style="background:#ff9a3c" aria-label="Dog">🐶</button>
+      <button class="pad-btn" data-i="1" style="background:#a77bff" aria-label="Cat">🐱</button>
+      <button class="pad-btn" data-i="2" style="background:#3ddc97" aria-label="Frog">🐸</button>
+      <button class="pad-btn" data-i="3" style="background:#e8b800" aria-label="Chick">🐥</button>
+      <button class="pad-btn" data-i="4" style="background:#4cb3ff" aria-label="Elephant">🐘</button>
+      <button class="pad-btn" data-i="5" style="background:#ff6fa8" aria-label="Drum">🥁</button>
+    </div>
+    <div class="row" style="margin:0">
+      <button class="btn" id="rec">⏺ Record</button>
+      <button class="btn green" id="playback">▶ Play</button>
+    </div>
+  </section>
+
+  <section class="maker">
+    <p class="owner" id="owner">Nafia's silly creature</p>
+    <p class="hint">Tap a part to change it!</p>
+    <div class="creature">
+      <button class="slot" data-k="0" aria-label="Change hat">👑</button>
+      <button class="slot" data-k="1" aria-label="Change face">🦄</button>
+      <button class="slot" data-k="2" aria-label="Change body">👗</button>
+      <button class="slot" data-k="3" aria-label="Change shoes">👟</button>
+    </div>
+    <div class="row" style="margin:0">
+      <button class="btn pink" id="shuffle">Shuffle 🎲</button>
+      <button class="btn" id="swap">Nafia ⇄ Naisha</button>
+    </div>
+  </section>
+
+  <section class="garden">
+    <p class="hint">Tap the ground to plant magic flowers 🌱</p>
+    <div class="plot" id="plot"></div>
+  </section>
+
+  <section class="game">
+    <p class="hint">Catch the yummy treats! Slide the basket. Avoid the bugs 🐛</p>
+    <div class="hud"><span>⭐ <b id="score">0</b></span><span>⏱️ <b id="time">25</b></span><span>🏆 <b id="best">0</b></span></div>
+    <div class="arena" id="arena">
+      <div class="msg" id="msg">Press Play 👇</div>
+      <span class="basket" id="basket">🧺</span>
+    </div>
+    <p style="margin:12px 0 0"><button class="btn green" id="play">Play ▶️</button></p>
+  </section>
+
+  <div class="row">
+    <button class="btn" id="friend">Add a friend 🐶</button>
+    <button class="btn pink" id="surprise">Surprise! 🎉</button>
+    <button class="btn green" id="clear">Clean board 🧽</button>
+    <button class="btn" id="bed" style="background:#a77bff;box-shadow:0 5px 0 #6a43c9;color:#fff">Bedtime 🌙</button>
+  </div>
+  <p class="hint">Drag anywhere for sparkles ✨ Pop balloons 🎈 Tap the sun ☀️</p>
+  <div class="banner" id="banner">Nafia &amp; Naisha 🎉</div>
+</main>
+
+<div class="grass"><div class="flowers"><span>🌼</span><span>🌷</span><span>🌻</span><span>🌸</span><span>🌼</span></div><div id="walkers"></div></div>
+
+<script>
+(function(){
+  var root=document.documentElement, ctx=null;
+  function audio(){
+    try{ if(!ctx){ var A=window.AudioContext||window.webkitAudioContext; ctx=new A(); } if(ctx.state==='suspended') ctx.resume(); }catch(e){}
+    return ctx;
+  }
+  function note(freq){
+    var c=audio(); if(!c) return;
+    var o=c.createOscillator(), g=c.createGain();
+    o.type='triangle'; o.frequency.value=freq;
+    g.gain.setValueAtTime(.25,c.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.6);
+    o.connect(g); g.connect(c.destination); o.start(); o.stop(c.currentTime+.6);
+  }
+  function popSound(){
+    var c=audio(); if(!c) return;
+    var o=c.createOscillator(), g=c.createGain();
+    o.type='square'; o.frequency.setValueAtTime(500,c.currentTime);
+    o.frequency.exponentialRampToValueAtTime(90,c.currentTime+.12);
+    g.gain.setValueAtTime(.2,c.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.15);
+    o.connect(g); g.connect(c.destination); o.start(); o.stop(c.currentTime+.16);
+  }
+  function burst(x,y,set){
+    for(var i=0;i<5;i++){
+      var p=document.createElement('span'); p.className='pop';
+      p.textContent=set[Math.floor(Math.random()*set.length)];
+      p.style.left=x+'px'; p.style.top=y+'px';
+      p.style.setProperty('--dx',(Math.random()*120-60)+'px');
+      document.body.appendChild(p);
+      setTimeout(function(el){el.remove()},1100,p);
+    }
+  }
+
+  // Letters: color + musical note (C major pentatonic)
+  var scale=[262,294,330,392,440,523];
+  document.querySelectorAll('.name').forEach(function(name){
+    var colors=name.dataset.colors.split(',');
+    name.querySelectorAll('.l').forEach(function(l,i){
+      l.style.color=colors[i];
+      l.style.animationDelay=(i*.12)+'s';
+      l.addEventListener('click',function(e){
+        note(scale[i%scale.length]);
+        l.classList.remove('jump'); void l.offsetWidth; l.classList.add('jump');
+        burst(e.clientX,e.clientY,['⭐','🎵','✨']);
+      });
+    });
+  });
+
+  // Day / night
+  var sky=document.getElementById('sky');
+  var dark=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches;
+  function setTheme(d){ root.setAttribute('data-theme',d?'dark':'light'); sky.textContent=d?'🌙':'🌞'; }
+  setTheme(dark);
+  sky.addEventListener('click',function(){ dark=!dark; setTheme(dark); note(dark?196:523); });
+
+  // Stars (visible at night)
+  var starBox=document.getElementById('stars');
+  for(var s=0;s<28;s++){
+    var st=document.createElement('span'); st.className='star'; st.textContent='✦';
+    st.style.left=(Math.random()*96)+'%'; st.style.top=(Math.random()*70)+'%';
+    st.style.animationDelay=(Math.random()*2.4)+'s'; st.style.color='#fff3b0';
+    starBox.appendChild(st);
+  }
+
+  // Balloons
+  var box=document.getElementById('balloons'), balloons=['🎈','🎈','🎈','🪁','🦋'];
+  function spawn(){
+    if(document.hidden||box.children.length>7) return;
+    var b=document.createElement('span'); b.className='balloon';
+    b.textContent=balloons[Math.floor(Math.random()*balloons.length)];
+    b.style.left=(Math.random()*88)+'%';
+    b.style.setProperty('--dx',(Math.random()*80-40)+'px');
+    b.style.animationDuration=(9+Math.random()*6)+'s';
+    b.addEventListener('animationend',function(){b.remove()});
+    b.addEventListener('click',function(e){
+      popSound(); burst(e.clientX,e.clientY,['✨','💥','🎉']); b.remove();
+    });
+    box.appendChild(b);
+  }
+  spawn(); setInterval(spawn,1800);
+
+  // Sparkle trail while dragging anywhere
+  var lastT=0, down=false;
+  document.addEventListener('pointerdown',function(){down=true});
+  document.addEventListener('pointerup',function(){down=false});
+  document.addEventListener('pointermove',function(e){
+    var t=Date.now();
+    if(t-lastT<70||(e.pointerType!=='mouse'&&!down)||e.target.id==='pad') return;
+    lastT=t; burst(e.clientX,e.clientY,['✨','⭐','💫']);
+  });
+
+  // Rainbow drawing pad
+  var cv=document.getElementById('pad'), g=cv.getContext('2d'), hue=0, drawing=false, lx=0, ly=0;
+  function sizePad(){
+    var r=cv.getBoundingClientRect(), d=window.devicePixelRatio||1;
+    cv.width=r.width*d; cv.height=r.height*d; g.scale(d,d);
+    g.lineCap='round'; g.lineJoin='round'; g.lineWidth=10;
+  }
+  sizePad();
+  function pos(e){ var r=cv.getBoundingClientRect(); return [e.clientX-r.left,e.clientY-r.top]; }
+  cv.addEventListener('pointerdown',function(e){
+    drawing=true; var p=pos(e); lx=p[0]; ly=p[1]; cv.setPointerCapture(e.pointerId);
+    g.fillStyle='hsl('+hue+',90%,60%)'; g.beginPath(); g.arc(lx,ly,5,0,7); g.fill();
+  });
+  cv.addEventListener('pointermove',function(e){
+    if(!drawing) return;
+    var p=pos(e); hue=(hue+6)%360;
+    g.strokeStyle='hsl('+hue+',90%,60%)';
+    g.beginPath(); g.moveTo(lx,ly); g.lineTo(p[0],p[1]); g.stroke();
+    lx=p[0]; ly=p[1];
+  });
+  cv.addEventListener('pointerup',function(){drawing=false});
+  cv.addEventListener('pointercancel',function(){drawing=false});
+  document.getElementById('clear').addEventListener('click',function(){
+    g.clearRect(0,0,cv.width,cv.height); popSound();
+  });
+
+  // Surprise: melody + banner + falling confetti
+  var banner=document.getElementById('banner');
+  document.getElementById('surprise').addEventListener('click',function(){
+    [262,330,392,523,392,523,659].forEach(function(f,i){ setTimeout(function(){note(f)},i*140); });
+    banner.classList.remove('show'); void banner.offsetWidth; banner.classList.add('show');
+    var bits=['🎈','⭐','🌈','🍭','🦄','🧸','🎀','🚗','🦋','🍓'];
+    for(var i=0;i<26;i++){
+      var f=document.createElement('span'); f.className='fall';
+      f.textContent=bits[Math.floor(Math.random()*bits.length)];
+      f.style.left=(Math.random()*92)+'%';
+      f.style.animationDuration=(2.5+Math.random()*2.5)+'s';
+      f.style.animationDelay=(Math.random()*.9)+'s';
+      f.addEventListener('animationend',function(){this.remove()});
+      document.body.appendChild(f);
+    }
+  });
+
+  // Sticker world
+  var packs={
+    meadow:['🌳','🏠','🐑','🐄','🌈','☁️','🦋','🚜','🌻','🐓'],
+    space:['🚀','🛸','🪐','🌙','⭐','👽','☄️','🧑‍🚀','🌍','✨'],
+    sea:['🐠','🐙','🐳','🦀','🐢','🐚','⚓','🧜‍♀️','🦈','🐡']
+  };
+  var scene=document.getElementById('scene'), tray=document.getElementById('tray'), tabs=document.getElementById('tabs');
+  var current='meadow', zTop=1;
+  function fillTray(){
+    tray.innerHTML='';
+    packs[current].forEach(function(em){
+      var b=document.createElement('button'); b.textContent=em; b.setAttribute('aria-label','Add '+em);
+      b.addEventListener('click',function(){ addSticker(em); });
+      tray.appendChild(b);
+    });
+  }
+  function addSticker(em){
+    var w=scene.clientWidth, h=scene.clientHeight;
+    var s=document.createElement('span'); s.className='stk'; s.textContent=em;
+    var x=w/2-23+(Math.random()*80-40), y=h/2-23+(Math.random()*60-30);
+    s.style.left='0px'; s.style.top='0px'; s.style.transform='translate('+x+'px,'+y+'px)';
+    s._x=x; s._y=y; s.style.zIndex=++zTop;
+    var ox=0, oy=0;
+    s.addEventListener('pointerdown',function(e){
+      s.setPointerCapture(e.pointerId); s.classList.add('drag'); s.style.zIndex=++zTop;
+      ox=e.clientX-s._x; oy=e.clientY-s._y; e.preventDefault();
+    });
+    s.addEventListener('pointermove',function(e){
+      if(!s.classList.contains('drag')) return;
+      s._x=Math.max(-10,Math.min(scene.clientWidth-36,e.clientX-ox));
+      s._y=Math.max(-10,Math.min(scene.clientHeight-40,e.clientY-oy));
+      s.style.transform='translate('+s._x+'px,'+s._y+'px)';
+    });
+    function drop(){ s.classList.remove('drag'); }
+    s.addEventListener('pointerup',drop); s.addEventListener('pointercancel',drop);
+    scene.appendChild(s); note(scale[Math.floor(Math.random()*scale.length)]*2);
+  }
+  tabs.querySelectorAll('button').forEach(function(b){
+    b.addEventListener('click',function(){
+      current=b.dataset.s; scene.className='scene '+current; scene.innerHTML='';
+      tabs.querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x===b)});
+      fillTray(); note(392);
+    });
+  });
+  document.getElementById('undo').addEventListener('click',function(){ if(scene.lastChild) scene.lastChild.remove(); popSound(); });
+  document.getElementById('wipe').addEventListener('click',function(){ scene.innerHTML=''; popSound(); });
+  fillTray();
+
+  // Animal band
+  function tone(type,f1,f2,start,dur,vol){
+    var c=audio(); if(!c) return;
+    var o=c.createOscillator(), gn=c.createGain(), t=c.currentTime+start;
+    o.type=type; o.frequency.setValueAtTime(f1,t);
+    o.frequency.exponentialRampToValueAtTime(f2,t+dur);
+    gn.gain.setValueAtTime(vol,t); gn.gain.exponentialRampToValueAtTime(.001,t+dur);
+    o.connect(gn); gn.connect(c.destination); o.start(t); o.stop(t+dur+.02);
+  }
+  var voices=[
+    function(){ tone('square',420,210,0,.18,.18); tone('square',420,210,.22,.18,.18); },
+    function(){ tone('sine',700,1100,0,.2,.3); tone('sine',1100,600,.2,.25,.3); },
+    function(){ tone('square',150,110,0,.1,.2); tone('square',160,110,.13,.12,.2); },
+    function(){ tone('triangle',1400,1900,0,.08,.3); tone('triangle',1500,2000,.11,.08,.3); tone('triangle',1600,2100,.22,.08,.3); },
+    function(){ tone('sawtooth',170,80,0,.6,.15); },
+    function(){ tone('sine',160,40,0,.22,.7); }
+  ];
+  var padBtns=document.querySelectorAll('.pad-btn'), recording=false, track=[], recStart=0, playTimers=[];
+  function hit(i){
+    voices[i](); var b=padBtns[i]; b.classList.add('hit'); setTimeout(function(){b.classList.remove('hit')},120);
+    var r=b.getBoundingClientRect(); burst(r.left+r.width/2,r.top,['🎵','✨']);
+  }
+  padBtns.forEach(function(b){
+    b.addEventListener('pointerdown',function(){
+      var i=+b.dataset.i; hit(i);
+      if(recording&&track.length<60) track.push({i:i,t:performance.now()-recStart});
+    });
+  });
+  var recBtn=document.getElementById('rec'), playBtn=document.getElementById('playback');
+  recBtn.addEventListener('click',function(){
+    if(!recording){ track=[]; recording=true; recStart=performance.now(); recBtn.textContent='⏹ Stop'; recBtn.classList.add('rec-on'); }
+    else { recording=false; recBtn.textContent='⏺ Record'; recBtn.classList.remove('rec-on'); }
+  });
+  playBtn.addEventListener('click',function(){
+    if(recording){ recBtn.click(); }
+    playTimers.forEach(clearTimeout); playTimers=[];
+    if(!track.length){ showBanner('Record a song first 🎤'); return; }
+    var base=track[0].t;
+    track.forEach(function(ev){ playTimers.push(setTimeout(function(){hit(ev.i)},ev.t-base)); });
+  });
+
+  // Creature maker
+  var parts=[
+    ['👑','🎩','🎀','🧢','🪄','🎓','⛑️'],
+    ['🦄','🐶','🐱','🐸','🐼','🦁','🐙','👽','🐵','🐰'],
+    ['👗','👕','🧥','🦺','🎽','🥻'],
+    ['👟','🥾','👠','🩴','🧦']
+  ];
+  var idx=[0,0,0,0], slots=document.querySelectorAll('.slot'), owner=document.getElementById('owner'), who='Nafia';
+  function jumpEl(el){ el.classList.remove('jump'); void el.offsetWidth; el.classList.add('jump'); }
+  function setSlot(k,i){ idx[k]=i; slots[k].textContent=parts[k][i]; jumpEl(slots[k]); }
+  slots.forEach(function(s){
+    s.addEventListener('click',function(){
+      var k=+s.dataset.k; setSlot(k,(idx[k]+1)%parts[k].length);
+      note(scale[(idx[k])%scale.length]);
+    });
+  });
+  document.getElementById('shuffle').addEventListener('click',function(){
+    for(var k=0;k<4;k++) setSlot(k,Math.floor(Math.random()*parts[k].length));
+    note(440); setTimeout(function(){note(587)},120);
+  });
+  document.getElementById('swap').addEventListener('click',function(){
+    who=who==='Nafia'?'Naisha':'Nafia';
+    owner.textContent=who+"'s silly creature"; note(who==='Nafia'?330:392);
+  });
+
+  // Magic garden
+  var plot=document.getElementById('plot'), flowers=['🌸','🌼','🌷','🌻','🌺','🍄','🌹','🪻'];
+  plot.addEventListener('click',function(e){
+    var r=plot.getBoundingClientRect(), x=e.clientX-r.left, y=e.clientY-r.top;
+    var p=document.createElement('span'); p.className='plant'; p.textContent='🌱';
+    p.style.left=x+'px'; p.style.top=(y-30)+'px'; plot.appendChild(p);
+    note(scale[Math.floor(Math.random()*scale.length)]);
+    setTimeout(function(){
+      p.textContent=flowers[Math.floor(Math.random()*flowers.length)];
+      p.style.animation='none'; void p.offsetWidth; p.style.animation='grow .7s cubic-bezier(.3,1.8,.5,1) forwards';
+      burst(e.clientX,e.clientY-20,['✨','💖']);
+    },700);
+    if(plot.querySelectorAll('.plant').length>30) plot.querySelector('.plant').remove();
+    if(Math.random()<.3){
+      var b=document.createElement('span'); b.className='bee'; b.textContent=['🐝','🦋','🐞'][Math.floor(Math.random()*3)];
+      b.addEventListener('animationend',function(){b.remove()}); plot.appendChild(b);
+    }
+  });
+
+  // Bedtime: night sky + slow lullaby + goodnight sign
+  function showBanner(text){
+    banner.textContent=text;
+    banner.classList.remove('show'); void banner.offsetWidth; banner.classList.add('show');
+  }
+  document.getElementById('bed').addEventListener('click',function(){
+    dark=true; setTheme(true);
+    [392,330,262,330,392,392,392,330,330,330,392,440,440].forEach(function(f,i){
+      setTimeout(function(){note(f/1.5)},i*420);
+    });
+    showBanner('Good night 🌙💤');
+  });
+
+  // Catch-the-treats game
+  var arena=document.getElementById('arena'), basket=document.getElementById('basket'), msg=document.getElementById('msg');
+  var elScore=document.getElementById('score'), elTime=document.getElementById('time'), elBest=document.getElementById('best');
+  var good=['⭐','🍓','🍭','🍪','🍎','🧁'], bad=['🐛','🪨'];
+  var items=[], score=0, best=0, timeLeft=0, running=false, bx=100, aw=300, ah=260, lastSpawn=0, lastFrame=0, endAt=0;
+  function setBasket(x){ bx=Math.max(26,Math.min(aw-26,x)); basket.style.transform='translateX('+(bx-26)+'px)'; }
+  function arenaX(e){ return e.clientX-arena.getBoundingClientRect().left; }
+  arena.addEventListener('pointerdown',function(e){ setBasket(arenaX(e)); arena.setPointerCapture(e.pointerId); });
+  arena.addEventListener('pointermove',function(e){ if(e.pointerType==='mouse'||e.buttons||e.pressure>0) setBasket(arenaX(e)); });
+  function clearItems(){ items.forEach(function(it){it.el.remove()}); items=[]; }
+  function frame(t){
+    if(!running) return;
+    var dt=Math.min(40,t-lastFrame)/1000; lastFrame=t;
+    if(t-lastSpawn>650){
+      lastSpawn=t;
+      var isBad=Math.random()<.22, el=document.createElement('span'); el.className='item';
+      var list=isBad?bad:good; el.textContent=list[Math.floor(Math.random()*list.length)];
+      arena.appendChild(el);
+      items.push({el:el,x:20+Math.random()*(aw-40),y:-30,vy:110+Math.random()*90+(25-timeLeft)*3,bad:isBad});
+    }
+    for(var i=items.length-1;i>=0;i--){
+      var it=items[i]; it.y+=it.vy*dt;
+      it.el.style.transform='translate('+(it.x-17)+'px,'+it.y+'px)';
+      if(it.y>ah-62&&it.y<ah-20&&Math.abs(it.x-bx)<38){
+        if(it.bad){ score=Math.max(0,score-2); popSound(); } else { score++; note(scale[score%scale.length]*2); }
+        elScore.textContent=score; burst(arena.getBoundingClientRect().left+it.x,arena.getBoundingClientRect().top+it.y,it.bad?['💥']:['✨','⭐']);
+        it.el.remove(); items.splice(i,1);
+      } else if(it.y>ah){ it.el.remove(); items.splice(i,1); }
+    }
+    timeLeft=Math.max(0,Math.ceil((endAt-t)/1000)); elTime.textContent=timeLeft;
+    if(t>=endAt){ finish(); return; }
+    requestAnimationFrame(frame);
+  }
+  function finish(){
+    running=false; clearItems();
+    if(score>best){ best=score; elBest.textContent=best; }
+    msg.style.display='flex'; msg.textContent='Great job! You got '+score+' ⭐';
+    document.getElementById('play').textContent='Play again ▶️';
+    [523,659,784,1047].forEach(function(f,i){ setTimeout(function(){note(f)},i*130); });
+    showBanner('Yay! '+score+' ⭐');
+  }
+  document.getElementById('play').addEventListener('click',function(){
+    audio(); aw=arena.clientWidth; ah=arena.clientHeight; setBasket(aw/2);
+    clearItems(); score=0; elScore.textContent=0; msg.style.display='none'; running=true;
+    var t0=performance.now(); lastFrame=t0; lastSpawn=t0; endAt=t0+25000;
+    requestAnimationFrame(frame);
+  });
+
+  // Animal friends
+  var animals=['🐶','🐱','🐢','🐰','🐞','🐘','🦆','🐑'], walkers=document.getElementById('walkers');
+  document.getElementById('friend').addEventListener('click',function(e){
+    var a=document.createElement('span'); a.className='walker';
+    a.textContent=animals[Math.floor(Math.random()*animals.length)];
+    a.addEventListener('animationend',function(){a.remove()});
+    walkers.appendChild(a); note(330+Math.random()*200);
+    burst(e.clientX,e.clientY,['💖','⭐']);
+  });
+})();
+</script>
+</body>
+</html>
